@@ -46,6 +46,9 @@ logs-postgres:
 conn-pgcli:
 	@echo "Connecting to Postgres..."
 	uvx pgcli -h localhost -p 5432 -U postgres -d postgres
+create-table:
+	@echo "Creating table..."
+	uv run python src/consumers/create_table.py
 #FOR WORK WITH FLINK
 get-flink:
 	@echo "Downloading Flink..."
@@ -80,5 +83,7 @@ exec-agreg:
 	docker compose exec jobmanager ./bin/flink run \
 	-py /opt/src/job/aggregated_job.py \
 	--pyFiles /opt/src -d
+watch_psql:
+	watch -n 1 'PGPASSWORD=postgres docker compose exec postgres psql -U postgres -d postgres -c "SELECT window_start, sum(num_trips) as trips, round(sum(total_revenue)::numeric, 2) as revenue FROM processed_events_aggregated GROUP BY window_start ORDER BY window_start;"'
 
 up-all: up-redpd up-postgres up-flink	
