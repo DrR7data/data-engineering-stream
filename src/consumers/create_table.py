@@ -11,12 +11,12 @@ conn.autocommit = True
 cur = conn.cursor()
 
 sql="""
-CREATE TABLE IF NOT EXISTS processed_events_aggregated (
-    window_start TIMESTAMP,
+CREATE TABLE IF NOT EXISTS processed_events (
     PULocationID INTEGER,
-    num_trips BIGINT,
-    total_revenue DOUBLE PRECISION,
-    PRIMARY KEY (window_start, PULocationID)
+    DOLocationID INTEGER,
+    trip_distance DOUBLE PRECISION,
+    total_amount DOUBLE PRECISION,
+    pickup_datetime TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS processed_events_aggregated (
@@ -30,7 +30,6 @@ CREATE TABLE IF NOT EXISTS processed_events_aggregated (
 cur.execute(sql)
 sql="""
 SELECT * FROM processed_events_aggregated;
-
 """
 cur.execute(sql)
 

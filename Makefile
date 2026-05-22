@@ -2,7 +2,7 @@ header:
 	@echo "For work with etl stream"
 expor:
 	@echo "Exporting environment variables..."
-	export alias RR="> "
+	echo 'PS1="> "' >> ~/.bashrc
 uv:
 	pip install uv
 	python3 -m pip install --upgrade pip
@@ -65,24 +65,27 @@ up-flink:
 	@echo "Building Flink..."
 	docker compose up jobmanager taskmanager -d
 	docker ps
+run-prod-pass:
+	@echo "Running producer..."
+	uv run python src/producers/producer_pass_through.py
 
 exec-manager:
 	@echo "Executing Flink job manager..."
 	docker compose exec jobmanager ./bin/flink run \
-    -py /opt/src/job/pass_through_job.py \
-    --pyFiles /opt/src -d
+    	-py /opt/src/job/pass_through_job.py \
+    	--pyFiles /opt/src -d
 #Job has been submitted with JobID cc833bd4aa5c24f42835c0f85508fc9d
-get_prod:
+get-prod:
 	#PREFIX="https://raw.githubusercontent.com/DataTalksClub/data-engineering-zoomcamp/main/07-streaming/workshop"
 	#wget ${PREFIX}/src/producers/producer_realtime.py -P src/producers/
-run_producer:
+run-producer:
 	@echo "Running producer..."
 	uv run python src/producers/producer_realtime.py
 exec-agreg:
 	@echo "Executing Flink job manager..."
 	docker compose exec jobmanager ./bin/flink run \
-	-py /opt/src/job/aggregated_job.py \
-	--pyFiles /opt/src -d
+		-py /opt/src/job/aggregated_job.py \
+		--pyFiles /opt/src -d
 watch_psql:
 	watch -n 1 'PGPASSWORD=postgres docker compose exec postgres psql -U postgres -d postgres -c "SELECT window_start, sum(num_trips) as trips, round(sum(total_revenue)::numeric, 2) as revenue FROM processed_events_aggregated GROUP BY window_start ORDER BY window_start;"'
 
