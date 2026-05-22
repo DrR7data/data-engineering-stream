@@ -3,6 +3,12 @@ header:
 expor:
 	@echo "Exporting environment variables..."
 	export alias RR="> "
+uv:
+	pip install uv
+	python3 -m pip install --upgrade pip
+	uv sync
+	@echo "Activating virtual environment..."
+	source .venv/bin/activate
 venv:
 	@echo "Creating virtual environment..."
 	uv venv 
@@ -25,3 +31,54 @@ redpd-logs:
 	docker-compose logs redpanda -f
 ps1:
 	alias ps1='PS1="> "'
+mk:
+	@echo "Making..."
+	mkdir -p src/producers src/consumers src/job
+#For work with postgres
+up-postgres:
+	@echo "Starting Postgres..."
+	docker-compose up postgres -d
+	@echo "Postgres started."
+	docker-compose ps
+logs-postgres:
+	@echo "Starting Postgres..."
+	docker-compose logs postgres -f
+conn-pgcli:
+	@echo "Connecting to Postgres..."
+	uvx pgcli -h localhost -p 5432 -U postgres -d postgres
+#FOR WORK WITH FLINK
+get-flink:
+	@echo "Downloading Flink..."
+	#PREFIX="https://raw.githubusercontent.com/DataTalksClub/data-engineering-zoomcamp/main/07-streaming/workshop"
+	#wget ${PREFIX}/Dockerfile.flink
+	#wget ${PREFIX}/pyproject.flink.toml
+	#wget ${PREFIX}/flink-config.yaml
+
+build-flink:
+	@echo "Building Flink..."
+	docker compose up --build -d
+	docker ps
+up-flink:
+	@echo "Building Flink..."
+	docker compose up jobmanager taskmanager -d
+	docker ps
+
+exec-manager:
+	@echo "Executing Flink job manager..."
+	docker compose exec jobmanager ./bin/flink run \
+    -py /opt/src/job/pass_through_job.py \
+    --pyFiles /opt/src -d
+#Job has been submitted with JobID cc833bd4aa5c24f42835c0f85508fc9d
+get_prod:
+	#PREFIX="https://raw.githubusercontent.com/DataTalksClub/data-engineering-zoomcamp/main/07-streaming/workshop"
+	#wget ${PREFIX}/src/producers/producer_realtime.py -P src/producers/
+run_producer:
+	@echo "Running producer..."
+	uv run python src/producers/producer_realtime.py
+exec-agreg:
+	@echo "Executing Flink job manager..."
+	docker compose exec jobmanager ./bin/flink run \
+	-py /opt/src/job/aggregated_job.py \
+	--pyFiles /opt/src -d
+
+up-all: up-redpd up-postgres up-flink	
